@@ -1,0 +1,80 @@
+.mainPage {
+  box-sizing: border-box;
+  padding: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.mainPage h3 {
+  font-weight: lighter;
+}
+.mainPage .header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+.mainPage .header h3 {
+  margin: 10px;
+}
+.mainPage .header h3:hover {
+  cursor: pointer;
+  color: #d0d0d0;
+}
+.mainPage .mainPageBody {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.mainPage .mainPageBody .mainPageName {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mainPage .mainPageBody .mainPageName img {
+  width: 10%;
+}
+.mainPage .mainPageBody .mainPageLogo {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.mainPage .mainPageBody .mainPageLogo .mainPageLogoContainer {
+  width: auto;
+  height: auto;
+  overflow: hidden;
+}
+.mainPage .mainPageBody .mainPageLogo .mainPageLogoContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mainPage .mainPageBody .mainPageBtns {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.mainPage .mainPageBody .mainPageBtns button {
+  width: 50%;
+  padding: 10px;
+  background-color: black;
+  color: white;
+  border: 1px solid white;
+  margin-bottom: 10px;
+  font-weight: lighter;
+}
+.mainPage .mainPageBody .mainPageBtns button:hover {
+  cursor: pointer;
+  background-color: white;
+  color: black;
+}
+
+/*# sourceMappingURL=MainPage.css.map */
