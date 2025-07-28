@@ -1,22 +1,63 @@
-const users = require('../models/User');
+const dataSource = require('../data-source');
+const bcrypt = require('bcrypt');
+const UserRepo = dataSource.getRepository('User');
 
-exports.register = (req, res) => {
+// 注册用户
+exports.register = async (req, res) => {
   const { username, password } = req.body;
 
-  if (users[username]) {
-    return res.status(400).json({ message: 'User already exists' });
-  }
+  try {
+    const existingUser = await UserRepo.findOneBy({ username });
 
-  users[username] = { password, balance: 100000, stocks: {} }; // 初始余额和空股票账户
-  res.status(201).json({ message: 'User registered successfully' });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = UserRepo.create({
+      username,
+      password_hash: hashedPassword,
+      balance: 1000000.00,//初始余额
+      created_at: new Date(),
+    });
+
+    const savedUser = await UserRepo.save(newUser);
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: { id: savedUser.user_id, username: savedUser.username },
+    });
+  } catch (err) {
+    console.error('Register error:', err);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
 };
 
-exports.login = (req, res) => {
+// 登录用户
+exports.login = async (req, res) => {
   const { username, password } = req.body;
 
-  if (!users[username] || users[username].password !== password) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
+  try {
+    const user = await UserRepo.findOneBy({ username });
 
-  res.status(200).json({ message: 'Login successful' });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: { id: user.user_id, username: user.username },
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error during login' });
+  }
 };
+
