@@ -1,29 +1,19 @@
+// models/Portfolio.js
 const { EntitySchema } = require('typeorm');
 
 module.exports = new EntitySchema({
-  name: 'Trade',
-  tableName: 'trades',
+  name: 'Portfolio',
+  tableName: 'portfolios',
   columns: {
-    id: {
+    portfolio_id: {
       primary: true,
       type: 'int',
       generated: true,
     },
-    symbol: {
+    name: {
       type: 'varchar',
     },
-    quantity: {
-      type: 'int',
-    },
-    price: {
-      type: 'decimal',
-      precision: 10,
-      scale: 2,
-    },
-    type: {
-      type: 'varchar', // 'buy' or 'sell'
-    },
-    timestamp: {
+    created_at: {
       type: 'timestamp',
       createDate: true,
     },
@@ -32,7 +22,8 @@ module.exports = new EntitySchema({
     user: {
       type: 'many-to-one',
       target: 'User',
-      joinColumn: true,
+      joinColumn: { name: 'user_id' },
+      onDelete: 'CASCADE',
       eager: true,
     },
   },
