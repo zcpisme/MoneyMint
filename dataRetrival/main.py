@@ -3,6 +3,23 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import yfinance as yf
 import pandas as pd
+import random
+
+TICKER_LIST = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "JPM", "V", "PG",
+    "DIS", "NFLX", "PEP", "KO", "INTC", "ADBE", "CSCO", "CRM", "WMT", "BA",
+    "T", "XOM", "CVX", "MRK", "PFE", "NKE", "MCD", "HD", "UNH", "WFC",
+    "ABBV", "COST", "ORCL", "QCOM", "IBM", "MDT", "GS", "LMT", "GE", "BKNG",
+    "CAT", "BLK", "PYPL", "AMAT", "TMO", "TXN", "UPS", "AXP", "MO", "F",
+    "GM", "FDX", "SBUX", "DHR", "DE", "MMM", "LOW", "SPGI", "ISRG", "CVS",
+    "RTX", "BMY", "GILD", "ZTS", "CL", "PLD", "MS", "USB", "ADP", "ETN",
+    "BDX", "ADI", "NOW", "EL", "VRTX", "REGN", "CMCSA", "C", "SO", "DUK",
+    "NEE", "ECL", "APD", "SCHW", "TGT", "PNC", "HUM", "AON", "BK", "CHTR",
+    "MAR", "KMB", "ROST", "DLR", "VZ", "HPQ", "EBAY", "ILMN", "AVGO", "TSM",
+    "HON", "ADI", "ABT", "FIS", "PAYX", "IDXX"
+]
+
+
 
 app = FastAPI()
 
@@ -59,6 +76,50 @@ def get_current_price(
             raise HTTPException(status_code=404, detail="Price not available or ticker invalid")
 
         return {"ticker": ticker.upper(), "current_price": price}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+@app.get("/random-stocks")
+def get_random_stocks():
+    try:
+        selected = random.sample(TICKER_LIST, 10)
+        data = []
+
+        for ticker in selected:
+            stock = yf.Ticker(ticker)
+            fast_info = stock.fast_info
+            info = stock.info
+
+            current = info.get("currentPrice")
+            open_price = fast_info.get("open")
+            high = fast_info.get("dayHigh")
+            low = fast_info.get("dayLow")
+            prev_close = fast_info.get("previousClose")
+            volume = fast_info.get('lastVolume')
+
+            # print(current)
+            if current is not None and prev_close is not None:
+                change = round(current - prev_close, 2)
+                change_percent = round((change / prev_close) * 100, 2)
+            else:
+                change = None
+                change_percent = None
+
+            data.append({
+                "ticker": ticker,
+                "company_name": info['longName'],
+                "current_price": current,
+                "change_amount": change,
+                "change_percent": change_percent,
+                "open": open_price,
+                "high": high,
+                "low": low,
+                "volume": volume
+            })
+
+        return data
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
