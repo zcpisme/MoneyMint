@@ -46,3 +46,19 @@ def get_financial_data(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/current-price")
+def get_current_price(
+    ticker: str = Query(..., description="Stock ticker symbol (e.g. AAPL)")
+):
+    try:
+        stock = yf.Ticker(ticker)
+        price = stock.info.get("currentPrice")
+
+        if price is None:
+            raise HTTPException(status_code=404, detail="Price not available or ticker invalid")
+
+        return {"ticker": ticker.upper(), "current_price": price}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
