@@ -47,3 +47,6 @@ dataRetrival/__pycache__/
 
 # Jupyter test
 test.ipynb
+
+# test folder
+test/
