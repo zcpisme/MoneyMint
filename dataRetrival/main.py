@@ -1,0 +1,125 @@
+from fastapi import FastAPI, Query, HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import yfinance as yf
+import pandas as pd
+import random
+
+TICKER_LIST = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "JPM", "V", "PG",
+    "DIS", "NFLX", "PEP", "KO", "INTC", "ADBE", "CSCO", "CRM", "WMT", "BA",
+    "T", "XOM", "CVX", "MRK", "PFE", "NKE", "MCD", "HD", "UNH", "WFC",
+    "ABBV", "COST", "ORCL", "QCOM", "IBM", "MDT", "GS", "LMT", "GE", "BKNG",
+    "CAT", "BLK", "PYPL", "AMAT", "TMO", "TXN", "UPS", "AXP", "MO", "F",
+    "GM", "FDX", "SBUX", "DHR", "DE", "MMM", "LOW", "SPGI", "ISRG", "CVS",
+    "RTX", "BMY", "GILD", "ZTS", "CL", "PLD", "MS", "USB", "ADP", "ETN",
+    "BDX", "ADI", "NOW", "EL", "VRTX", "REGN", "CMCSA", "C", "SO", "DUK",
+    "NEE", "ECL", "APD", "SCHW", "TGT", "PNC", "HUM", "AON", "BK", "CHTR",
+    "MAR", "KMB", "ROST", "DLR", "VZ", "HPQ", "EBAY", "ILMN", "AVGO", "TSM",
+    "HON", "ADI", "ABT", "FIS", "PAYX", "IDXX"
+]
+
+
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/financial-data")
+def get_financial_data(
+    ticker: str = Query(..., description="Stock ticker symbol (e.g. AAPL)"),
+    period: str = Query("1mo", description="Data period (e.g. 1d, 5d, 1mo, etc.)"),
+    interval: str = Query("1d", description="Data interval (e.g. 1m, 5m, 1d, etc.)")
+):
+    try:
+        data = yf.download(ticker, period=period, interval=interval)
+
+        if data.empty:
+            raise HTTPException(status_code=404, detail="No data found for the given parameters.")
+
+        # Flatten MultiIndex columns if necessary
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = ['_'.join(map(str, col)).strip() for col in data.columns]
+
+        # Reset index to move date to column
+        data.reset_index(inplace=True)
+
+        # Convert all datetime columns to string
+        for col in data.columns:
+            if pd.api.types.is_datetime64_any_dtype(data[col]):
+                data[col] = data[col].astype(str)
+
+        # Ensure all column names are strings
+        data.columns = [str(col) for col in data.columns]
+
+        records = data.to_dict(orient="records")
+        return JSONResponse(content=records)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/current-price")
+def get_current_price(
+    ticker: str = Query(..., description="Stock ticker symbol (e.g. AAPL)")
+):
+    try:
+        stock = yf.Ticker(ticker)
+        price = stock.info.get("currentPrice")
+
+        if price is None:
+            raise HTTPException(status_code=404, detail="Price not available or ticker invalid")
+
+        return {"ticker": ticker.upper(), "current_price": price}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+@app.get("/random-stocks")
+def get_random_stocks():
+    try:
+        selected = random.sample(TICKER_LIST, 10)
+        data = []
+
+        for ticker in selected:
+            stock = yf.Ticker(ticker)
+            fast_info = stock.fast_info
+            info = stock.info
+
+            current = info.get("currentPrice")
+            open_price = fast_info.get("open")
+            high = fast_info.get("dayHigh")
+            low = fast_info.get("dayLow")
+            prev_close = fast_info.get("previousClose")
+            volume = fast_info.get('lastVolume')
+
+            # print(current)
+            if current is not None and prev_close is not None:
+                change = round(current - prev_close, 2)
+                change_percent = round((change / prev_close) * 100, 2)
+            else:
+                change = None
+                change_percent = None
+
+            data.append({
+                "ticker": ticker,
+                "company_name": info['longName'],
+                "current_price": current,
+                "change_amount": change,
+                "change_percent": change_percent,
+                "open": open_price,
+                "high": high,
+                "low": low,
+                "volume": volume
+            })
+
+        return data
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
