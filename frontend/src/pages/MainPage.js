@@ -2,6 +2,23 @@ import LanguageChange from "../components/LanguageChange";
 import './MainPage.scss'
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
+import OverallIndex from "../components/OverallIndex";
+
+const fakeData = [
+    {
+
+    },
+    {
+
+    },
+    {
+
+    },
+    {
+
+    },
+]
+
 const MainPage = () => {
 
     const nav = useNavigate();
@@ -9,32 +26,34 @@ const MainPage = () => {
 
     return <div className='mainPage'>
         <div className='header'>
-            <h3>COMMUNITY</h3>
-            <h3>NEWS</h3>
+            <h3>USER</h3>
             <h3>CONTACT</h3>
             <h3>ABOUT</h3>
             <h3 onClick={()=>{nav('/login')}}>LOG IN</h3>
         </div>
         <div className='mainPageBody'>
-            <div className='mainPageName'>
-                <img src="/UIIcons/Logo(white).png" alt=""/>
-                <h3>Create your own jewelry with AI in seconds</h3>
+            <input />
+            <div className='mainPageMarket'>
+                <h3>
+                    Market Indices
+                </h3>
+                <div className="mainMarketIndices">
+                    <OverallIndex sp="6451.00" val="26%" perVal="+0.50%"/>
+                    <OverallIndex sp="6451.00" val="26%" perVal="+0.50%"/>
+                    <OverallIndex sp="6451.00" val="26%" perVal="+0.50%"/>
+                    <OverallIndex sp="6451.00" val="26%" perVal="+0.50%"/>
+                </div>
             </div>
 
-            <div className='mainPageLogo'>
+            <div className='mainPageStocks'>
+                <h3>Stocks</h3>
+                {/* <StockItem /> */}
                 <div className='mainPageLogoContainer'>
                     <img src="/UIIcons/Poster.png" alt=""/>
                 </div>
             </div>
 
-            <div className='mainPageBtns'>
-                <button onClick={()=>{showSelectionWindow(true)}}>
-                    START CREATION
-                </button>
-                <button onClick={()=>{nav('/community')}}>
-                    CREATIVE COMMUNITY
-                </button>
-            </div>
+            
         </div>
         <div className="mainPageFooter">
             <LanguageChange />
