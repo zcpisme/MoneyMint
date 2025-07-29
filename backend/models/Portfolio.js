@@ -26,5 +26,10 @@ module.exports = new EntitySchema({
       onDelete: 'CASCADE',
       eager: true,
     },
+    holdings: {
+      type: 'one-to-many',
+      target: 'Holding',
+      inverseSide: 'portfolio',
+    },
   },
 });
