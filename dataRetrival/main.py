@@ -70,12 +70,17 @@ def get_current_price(
 ):
     try:
         stock = yf.Ticker(ticker)
-        price = stock.info.get("currentPrice")
+        stock_info = stock.info
+        price = stock_info.get("currentPrice")
+        previous_close = stock_info.get("previousClose")
+        daily_change = (price - previous_close) / previous_close * 100
 
         if price is None:
             raise HTTPException(status_code=404, detail="Price not available or ticker invalid")
 
-        return {"ticker": ticker.upper(), "current_price": price}
+        return {"ticker": ticker.upper(),
+                "current_price": price,
+                "daily_change": daily_change}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -107,7 +112,7 @@ def get_main_index():
 @app.get("/random-stocks")
 def get_random_stocks():
     try:
-        selected = random.sample(TICKER_LIST, 10)
+        selected = random.sample(TICKER_LIST, 20)
         data = []
 
         for ticker in selected:
