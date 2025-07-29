@@ -50,13 +50,23 @@
                 }
             }
         }
-        .part2{
+        .part2 {
             width: 100%;
             border-radius: 5px;
             padding: 4px;
             border: #777777 1px solid;
             height: 30vh;
+
+            .diagram {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                height: 100%;
+                gap: 10px;
+            }
         }
+
         .part3{
             width: 100%;
             display: flex;
@@ -83,6 +93,12 @@
                 }
             }
             .portBody{
+                border: #777777 1px solid;
+                padding: 5px;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
                 .infopart{
                     display: flex;
                     justify-content: space-between;
@@ -91,9 +107,13 @@
                         width: 15%;
                     }
                     .infopart{
+                        display: flex;
+                        justify-content: space-between;
+                        width: 100%;
+                    }
                         width: 60%;
                     }
-                }
+
 
             }
         }

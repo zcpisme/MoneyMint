@@ -4,6 +4,7 @@ import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
 import Portfolios from './pages/Portfolios';
 import TestComponent from "./components/TestComponent";
+import PortDetail from "./pages/PortDetail";
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                 <Route path='/login' element={<LoginPage/>}/>
                 <Route path='/portfolios' element={<Portfolios/>}/>
                 <Route path='/test' element={<TestComponent/>}/>
+                <Route path='/portdetail' element={<PortDetail/>}/>
             </Routes>
         </BrowserRouter>
     );
