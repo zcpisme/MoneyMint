@@ -4,31 +4,15 @@ import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 import OverallIndex from "../components/OverallIndex";
 
-const fakeData = [
-    {
-
-    },
-    {
-
-    },
-    {
-
-    },
-    {
-
-    },
-]
-
 const MainPage = () => {
 
     const nav = useNavigate();
-    const [selectionWindow, showSelectionWindow] = useState(false);
 
     return <div className='mainPage'>
         <div className='header'>
             <h3>USER</h3>
             <h3>CONTACT</h3>
-            <h3>ABOUT</h3>
+            <h3 onClick={()=>{nav('/portfolios')}}>PORTFOLIO</h3>
             <h3 onClick={()=>{nav('/login')}}>LOG IN</h3>
         </div>
         <div className='mainPageBody'>
