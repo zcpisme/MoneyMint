@@ -80,7 +80,30 @@ def get_current_price(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-    
+@app.get("/main_index")
+def get_main_index():
+    try:
+        indices = {
+            "DJI": yf.Ticker("^DJI").info,
+            "IXIC": yf.Ticker("^IXIC").info,
+            "GSPC": yf.Ticker("^GSPC").info,
+            "^VIX": yf.Ticker("^VIX").info
+        }
+
+        indices_return = {
+            "DJI": [indices["DJI"].get("regularMarketPrice"), indices["DJI"].get("regularMarketPrice") - indices["DJI"].get("previousClose") ,(indices["DJI"].get("regularMarketPrice") - indices["DJI"].get("previousClose")) / indices["DJI"].get("previousClose") * 100],
+            "IXIC": [indices["IXIC"].get("regularMarketPrice"), indices["IXIC"].get("regularMarketPrice") - indices["IXIC"].get("previousClose"), (indices["IXIC"].get("regularMarketPrice") - indices["IXIC"].get("previousClose")) / indices["IXIC"].get("previousClose") * 100],
+            "GSPC": [indices["GSPC"].get("regularMarketPrice"), indices["GSPC"].get("regularMarketPrice") - indices["GSPC"].get("previousClose"), (indices["GSPC"].get("regularMarketPrice") - indices["GSPC"].get("previousClose")) / indices["GSPC"].get("previousClose") * 100],
+            "^VIX": [indices["^VIX"].get("regularMarketPrice"), indices["^VIX"].get("regularMarketPrice") - indices["^VIX"].get("previousClose"), (indices["^VIX"].get("regularMarketPrice") - indices["^VIX"].get("previousClose")) / indices["^VIX"].get("previousClose") * 100]
+        }
+        if any(price is None for price in indices.values()):
+            raise HTTPException(status_code=404, detail="One or more indices not available")
+
+        return indices_return
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/random-stocks")
 def get_random_stocks():
     try:
