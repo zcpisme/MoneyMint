@@ -2,10 +2,10 @@ const { DataSource } = require('typeorm');
 
 const AppDataSource = new DataSource({
   type: 'mysql',
-  host: 'metro.proxy.rlwy.net',
-  port: 13199,
+  host: 'nozomi.proxy.rlwy.net',
+  port: 14061,
   username: 'root',
-  password: 'hulNXjlFZEtDwUStgVHPTkfnRjYnLoEF',
+  password: 'IvizyFrCXKiAlpibqagxPWIbmFvRJeef',
   database: 'railway',
   synchronize: true,
   logging: true,

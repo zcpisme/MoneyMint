@@ -26,4 +26,16 @@ module.exports = new EntitySchema({
       default: 100000,
     },
   },
+  relations: {
+    portfolios: {
+      type: 'one-to-many',
+      target: 'Portfolio',
+      inverseSide: 'user', // Portfolio 表里的 user 字段
+    },
+    holdings: {
+      type: 'one-to-many',
+      target: 'Holding',
+      inverseSide: 'user', // Holding 表里的 user 字段
+    }
+  }
 });
