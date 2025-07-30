@@ -2,31 +2,95 @@ const AppDataSource = require('../data-source');
 const PortfolioRepo = AppDataSource.getRepository('Portfolio');
 const HoldingRepo = AppDataSource.getRepository('Holding');
 const UserRepo = AppDataSource.getRepository('User');
+const TransactionRepo = AppDataSource.getRepository('Transaction');
 const axios = require('axios');
+// exports.createPortfolio = async (req, res) => {
+//   const { user_id, name } = req.body;
+//   try {
+//     const user = await UserRepo.findOneBy({ user_id });
+//     if (!user) return res.status(404).json({ message: 'User not found' });
+
+//     const newPortfolio = PortfolioRepo.create({
+//       name,
+//       user,
+//       created_at: new Date(),
+//     });
+
+//     const saved = await PortfolioRepo.save(newPortfolio);
+
+//     res.status(201).json({
+//       message: 'Portfolio created',
+//       portfolio: {
+//         id: saved.portfolio_id,
+//         name: saved.name,
+//       },
+//     });
+//   } catch (err) {
+//     console.error('Create portfolio error:', err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
 exports.createPortfolio = async (req, res) => {
-  const { user_id, name } = req.body;
+  const { user_id, name, symbol, quantity, price } = req.body;
+
   try {
-    const user = await UserRepo.findOneBy({ user_id });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    await AppDataSource.manager.transaction(async (transactionalEntityManager) => {
+      const user = await transactionalEntityManager.findOne(UserRepo.target, {
+        where: { user_id },
+      });
+      if (!user) throw new Error('User not found');
 
-    const newPortfolio = PortfolioRepo.create({
-      name,
-      user,
-      created_at: new Date(),
-    });
+      const totalCost = price * quantity;
+      if (user.balance < totalCost) {
+        throw new Error('Insufficient balance');
+      }
 
-    const saved = await PortfolioRepo.save(newPortfolio);
+      const newPortfolio = transactionalEntityManager.create(PortfolioRepo.target, {
+        name,
+        user,
+        created_at: new Date(),
+      });
+      const savedPortfolio = await transactionalEntityManager.save(PortfolioRepo.target, newPortfolio);
 
-    res.status(201).json({
-      message: 'Portfolio created',
-      portfolio: {
-        id: saved.portfolio_id,
-        name: saved.name,
-      },
+      const newHolding = transactionalEntityManager.create(HoldingRepo.target, {
+        symbol,
+        quantity,
+        avg_buy_price: price,
+        user,
+        portfolio: savedPortfolio,
+        updated_at: new Date(),
+      });
+      await transactionalEntityManager.save(HoldingRepo.target, newHolding);
+
+      const txn = transactionalEntityManager.create(TransactionRepo.target, {
+        symbol,
+        txn_type: 'BUY',
+        quantity,
+        price_per_unit: price,
+        txn_date: new Date(),
+        user,
+        portfolio: savedPortfolio,
+      });
+      await transactionalEntityManager.save(TransactionRepo.target, txn);
+
+      user.balance -= totalCost;
+      await transactionalEntityManager.save(UserRepo.target, user);
+
+      res.status(201).json({
+        message: 'Portfolio created with initial stock purchase',
+        portfolio: {
+          id: savedPortfolio.portfolio_id,
+          name: savedPortfolio.name,
+          stock: { symbol, quantity, price },
+        },
+      });
     });
   } catch (err) {
     console.error('Create portfolio error:', err);
-    res.status(500).json({ message: 'Server error' });
+    const msg = err.message === 'User not found' || err.message === 'Insufficient balance'
+      ? err.message
+      : 'Server error during portfolio creation';
+    res.status(500).json({ message: msg });
   }
 };
 async function fetchCurrentPrice(symbol) {
