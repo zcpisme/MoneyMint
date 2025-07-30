@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Body
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import yfinance as yf
@@ -190,6 +190,64 @@ def get_chart_data(
         ] for record in records]
 
         return JSONResponse(content=records)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.post("/get-multi-stock-data")
+def get_multi_stock_data(
+    tickers: list[str] = Body(..., embed=True, description="List of stock ticker symbols")
+):
+    try:
+        data = []
+        for ticker in tickers:
+            stock = yf.Ticker(ticker)
+            fast_info = stock.fast_info
+            info = stock.info
+
+            current = info.get("currentPrice")
+            open_price = fast_info.get("open")
+            high = fast_info.get("dayHigh")
+            low = fast_info.get("dayLow")
+            prev_close = fast_info.get("previousClose")
+            volume = fast_info.get('lastVolume')
+
+            if current is not None and prev_close is not None:
+                change = round(current - prev_close, 2)
+                change_percent = round((change / prev_close) * 100, 2)
+            else:
+                change = None
+                change_percent = None
+
+            data.append({
+                "ticker": ticker,
+                "company_name": info.get('longName'),
+                "current_price": current,
+                "change_amount": change,
+                "change_percent": change_percent,
+                "open": open_price,
+                "high": high,
+                "low": low,
+                "volume": volume
+            })
+
+        return data
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/search-ticker")
+def search_ticker(
+    query: str = Query(..., description="Search query for stock ticker or company name")
+):
+    try:
+        results = yf.Ticker(query).search(query)
+
+        if not results:
+            raise HTTPException(status_code=404, detail="No results found for the given query.")
+
+        return results
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
