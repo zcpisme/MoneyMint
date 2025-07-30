@@ -41,3 +41,12 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+# _python_ specific
+dataRetrival/__pycache__/
+
+# Jupyter test
+test.ipynb
+
+# test folder
+test/
