@@ -152,6 +152,49 @@ def get_random_stocks():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+def fetch_chart_data(ticker, period="3mo", interval="1d"):
+    data = yf.download(ticker, period=period, interval=interval)
+    if data.empty:
+        raise HTTPException(status_code=404, detail="No data found for the given parameters.")
+
+    if isinstance(data.columns, pd.MultiIndex):
+        data.columns = [col[0] for col in data.columns]
+
+    data.reset_index(inplace=True)
+
+    for col in data.columns:
+        if pd.api.types.is_datetime64_any_dtype(data[col]):
+            data[col] = data[col].astype(str)
+
+    data.columns = [str(col) for col in data.columns]
+
+    records = data.to_dict(orient="records")
+    chart_data = [
+        [
+            record['Date'],
+            record.get('Open', None),
+            record.get('Close', None),
+            record.get('Low', None),
+            record.get('High', None),
+            record.get('Volume', None)
+        ]
+        for record in records
+    ]
+
+    # Get ticker info
+    stock = yf.Ticker(ticker)
+    info = stock.info
+
+    result = {
+        "ticker": ticker,
+        "company_name": info.get("longName"),
+        "chart_data": chart_data
+    }
+
+    return result
+
+
 @app.get("/get-chart-data")
 def get_chart_data(
     ticker: str = Query(..., description="Stock ticker symbol (e.g. AAPL)"),
@@ -159,38 +202,25 @@ def get_chart_data(
     interval: str = Query("1d", description="Data interval (e.g. 1m, 5m, 1d, etc.)")
 ):
     try:
-        data = yf.download(ticker, period=period, interval=interval)
-
-        if data.empty:
-            raise HTTPException(status_code=404, detail="No data found for the given parameters.")
-
-        # Flatten MultiIndex columns if necessary
-        if isinstance(data.columns, pd.MultiIndex):
-            data.columns = [col[0] for col in data.columns]
-
-        # Reset index to move date to column
-        data.reset_index(inplace=True)
-
-        # Convert all datetime columns to string
-        for col in data.columns:
-            if pd.api.types.is_datetime64_any_dtype(data[col]):
-                data[col] = data[col].astype(str)
-
-        # Ensure all column names are strings
-        data.columns = [str(col) for col in data.columns]
-
-        records = data.to_dict(orient="records")
-        records = [[
-            record['Date'],
-            record.get('Open', None),
-            record.get('Close', None),
-            record.get('Low', None),
-            record.get('High', None),
-            record.get('Volume', None)
-        ] for record in records]
-
+        records = fetch_chart_data(ticker, period, interval)
         return JSONResponse(content=records)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
+@app.get("/search-stock-kline")
+def search_stock(
+    query: str = Query(..., description="Search query for stock ticker or company name"),
+    period: str = Query("3mo", description="Data period (e.g. 1d, 5d, 1mo, etc.)"),
+    interval: str = Query("1d", description="Data interval (e.g. 1m, 5m, 1d, etc.)")
+):
+    try:
+        search = yf.Search(query).quotes
+        if len(search) == 0:
+            raise HTTPException(status_code=404, detail="No stocks found for the given query")
+        ticker = search[0]['symbol']
+        records = fetch_chart_data(ticker, period, interval)
+        return JSONResponse(content=records)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -237,17 +267,3 @@ def get_multi_stock_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.get("/search-ticker")
-def search_ticker(
-    query: str = Query(..., description="Search query for stock ticker or company name")
-):
-    try:
-        results = yf.Ticker(query).search(query)
-
-        if not results:
-            raise HTTPException(status_code=404, detail="No results found for the given query.")
-
-        return results
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
