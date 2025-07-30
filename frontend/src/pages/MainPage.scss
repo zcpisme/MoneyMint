@@ -26,22 +26,47 @@
     }
 
     .mainPageBody {
+
         display: flex;
         flex: 1;
         flex-direction: column;
         align-items: start;
         justify-content: start;
 
-        input{
+        .searchStock{
             width: 100%;
-            padding: 2px;
-            margin-bottom: 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            input{
+                width: 60%;
+                padding: 4px;
+                border-radius: 4px;
+                margin-bottom: 20px;
+                margin-right: 15px;
+                margin-top: 20px;
+                font-size: 15px;
+            }
+            .searchBtn{
+                cursor: pointer;
+            }
+
         }
 
-        .mainPageMarket{
+                .mainPageMarket{
             display: flex;
             flex-direction: column;
             width: 100%;
+            .secTitle {
+
+                margin: 0;
+                background-color: #214c9e;
+                border-radius: 4px;
+                padding: 4px;
+                h3{
+                    margin: 0;
+                }
+            }
             .mainMarketIndices {
                 display: flex;
                 flex-direction: row;
@@ -50,8 +75,24 @@
                 width: 80vw;
             }
         }
-        .mainPageStock{
+        .mainPageStocks{
+            width: 100%;
+            margin-top: 20px;
+            .secTitle {
+                margin: 0;
+                background-color: #214d9f;
+                border-radius: 4px;
+                padding: 4px;
+                h3{
+                    margin: 0;
+                }
+            }
+            .allStocks{
+                margin-top: 10px;
+                padding-right: 20px;
+                flex: 1;
 
+            }
         }
 
         
@@ -60,4 +101,44 @@
     .mainPageFooter {
 
     }
+}
+.stockTitleRow,
+.stockItemRow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    color: white;
+    font-size: 14px;
+    padding: 8px 6px;
+    padding-right: 20px;
+    box-sizing: border-box;
+    .name{
+        width: 20%;
+    }
+    span {
+        flex: 1;
+        text-align: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+
+        &.name {
+            width: 20vw;
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        &.action {
+            flex: 1;
+            text-align: right;
+            padding-right: 10px;
+        }
+    }
+}
+
+.stockTitleDivider {
+    border: none;
+    border-top: 1px solid white;
+    margin: 0;
+    width: 100%;
 }
