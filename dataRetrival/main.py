@@ -113,7 +113,7 @@ def get_main_index():
 def get_random_stocks():
     data = []
     tried = set()
-    while len(data) < 20 and len(tried) < len(TICKER_LIST):
+    while len(data) < 10 and len(tried) < len(TICKER_LIST):
         ticker = random.choice(TICKER_LIST)
         if ticker in tried:
             continue
