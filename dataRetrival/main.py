@@ -5,21 +5,21 @@ import yfinance as yf
 import pandas as pd
 import random
 
-TICKER_LIST = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "JPM", "V", "PG",
-    "DIS", "NFLX", "PEP", "KO", "INTC", "ADBE", "CSCO", "CRM", "WMT", "BA",
-    "T", "XOM", "CVX", "MRK", "PFE", "NKE", "MCD", "HD", "UNH", "WFC",
-    "ABBV", "COST", "ORCL", "QCOM", "IBM", "MDT", "GS", "LMT", "GE", "BKNG",
-    "CAT", "BLK", "PYPL", "AMAT", "TMO", "TXN", "UPS", "AXP", "MO", "F",
-    "GM", "FDX", "SBUX", "DHR", "DE", "MMM", "LOW", "SPGI", "ISRG", "CVS",
-    "RTX", "BMY", "GILD", "ZTS", "CL", "PLD", "MS", "USB", "ADP", "ETN",
-    "BDX", "ADI", "NOW", "EL", "VRTX", "REGN", "CMCSA", "C", "SO", "DUK",
-    "NEE", "ECL", "APD", "SCHW", "TGT", "PNC", "HUM", "AON", "BK", "CHTR",
-    "MAR", "KMB", "ROST", "DLR", "VZ", "HPQ", "EBAY", "ILMN", "AVGO", "TSM",
-    "HON", "ADI", "ABT", "FIS", "PAYX", "IDXX"
-]
+# TICKER_LIST = [
+#     "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "JPM", "V", "PG",
+#     "DIS", "NFLX", "PEP", "KO", "INTC", "ADBE", "CSCO", "CRM", "WMT", "BA",
+#     "T", "XOM", "CVX", "MRK", "PFE", "NKE", "MCD", "HD", "UNH", "WFC",
+#     "ABBV", "COST", "ORCL", "QCOM", "IBM", "MDT", "GS", "LMT", "GE", "BKNG",
+#     "CAT", "BLK", "PYPL", "AMAT", "TMO", "TXN", "UPS", "AXP", "MO", "F",
+#     "GM", "FDX", "SBUX", "DHR", "DE", "MMM", "LOW", "SPGI", "ISRG", "CVS",
+#     "RTX", "BMY", "GILD", "ZTS", "CL", "PLD", "MS", "USB", "ADP", "ETN",
+#     "BDX", "ADI", "NOW", "EL", "VRTX", "REGN", "CMCSA", "C", "SO", "DUK",
+#     "NEE", "ECL", "APD", "SCHW", "TGT", "PNC", "HUM", "AON", "BK", "CHTR",
+#     "MAR", "KMB", "ROST", "DLR", "VZ", "HPQ", "EBAY", "ILMN", "AVGO", "TSM",
+#     "HON", "ADI", "ABT", "FIS", "PAYX", "IDXX"
+# ]
 
-
+TICKER_LIST = pd.read_csv("stock_list.csv")['Symbol'].tolist()
 
 app = FastAPI()
 
@@ -111,11 +111,14 @@ def get_main_index():
 
 @app.get("/random-stocks")
 def get_random_stocks():
-    try:
-        selected = random.sample(TICKER_LIST, 20)
-        data = []
-
-        for ticker in selected:
+    data = []
+    tried = set()
+    while len(data) < 20 and len(tried) < len(TICKER_LIST):
+        ticker = random.choice(TICKER_LIST)
+        if ticker in tried:
+            continue
+        tried.add(ticker)
+        try:
             stock = yf.Ticker(ticker)
             fast_info = stock.fast_info
             info = stock.info
@@ -127,30 +130,23 @@ def get_random_stocks():
             prev_close = fast_info.get("previousClose")
             volume = fast_info.get('lastVolume')
 
-            # print(current)
-            if current is not None and prev_close is not None:
+            if current is not None and prev_close is not None and info.get('longName'):
                 change = round(current - prev_close, 2)
                 change_percent = round((change / prev_close) * 100, 2)
-            else:
-                change = None
-                change_percent = None
-
-            data.append({
-                "ticker": ticker,
-                "company_name": info['longName'],
-                "current_price": current,
-                "change_amount": change,
-                "change_percent": change_percent,
-                "open": open_price,
-                "high": high,
-                "low": low,
-                "volume": volume
-            })
-
-        return data
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+                data.append({
+                    "ticker": ticker,
+                    "company_name": info['longName'],
+                    "current_price": current,
+                    "change_amount": change,
+                    "change_percent": change_percent,
+                    "open": open_price,
+                    "high": high,
+                    "low": low,
+                    "volume": volume
+                })
+        except Exception:
+            continue
+    return data
     
 
 def fetch_chart_data(ticker, period="3mo", interval="1d"):
