@@ -1,0 +1,14 @@
+Money MInt
+Manage Your Portfolio and Make More Profit
+This is Our homepage
+On the homepage, users can view the overall economic status of the stock market. Below, they can browse real-time prices of individual stocks. These stock prices utilize lazy loading—ten stocks are fetched per request, and additional data is automatically loaded when the user scrolls to the bottom, enhancing the user experience.
+Clicking on a stock navigates to its detail page, where technical indicators such as MA10 and MA20 are available.
+Users can log in using a username and password. Additionally, the system provides reserved interfaces for third-party platform login and registration.
+After a successful login, users gain access to interactive features. On the stock detail page, they can input purchase quantities and assign stocks to specific investment portfolios.
+Purchased stocks and portfolios can be accessed through the "Portfolio" entry at the top of the page. This section allows users to manage all assets and configurations. Three pie charts visually display the distribution of account balance versus invested amount, the proportion of each portfolio within the invested assets, and the share of each stock within portfolios.
+This page also supports account top-up. Clicking the "Recharge" button redirects users to a third-party payment platform. After entering bank card credentials and completing payment, users are redirected back to the original page.
+The page also supports viewing portfolio details and adding new portfolios.
+Clicking on a specific portfolio opens its detailed view.
+A line chart at the top clearly presents the portfolio's return performance, while bar charts display other relevant quantitative indicators to aid user analysis.
+Within this page, users can increase or decrease the number of shares held in the portfolio.
+Users can easily switch between their portfolios using the toggle button to compare performance across different investment strategies.
